@@ -29,11 +29,19 @@
     
         create(){
             
-            this.score=10;
+            this.volume=1;
             this.add.image(this.sys.canvas.width/2, this.sys.canvas.height/2, 'background');
+
             var buttonMusic = this.add.image(this.sys.canvas.width*0.75, this.sys.canvas.height*0.7, 'buttonMusic').setOrigin(0).setInteractive();
-            var buttonSettings = this.add.image(this.sys.canvas.width*0.75, this.sys.canvas.height*0.83, 'buttonSettings').setOrigin(0).setInteractive();
             
+            buttonMusic.on('pointerup', function () {
+                this.startMusic1()
+                
+
+            }, this);
+
+            var buttonSettings = this.add.image(this.sys.canvas.width*0.75, this.sys.canvas.height*0.83, 'buttonSettings').setOrigin(0).setInteractive();
+
             buttonSettings.on('pointerup', function () {
                 this.toSettings()
                 
@@ -56,13 +64,6 @@
             */
     
             
-    
-            
-    
-            
-    
-            
-    
             
     
             
@@ -78,25 +79,29 @@
         //_____FUNCTION_____
         //__________________
     
-        toSettings (player, star){
-            this.scene.start('settings',{score:this.score});
+        toSettings (){
+            this.scene.start('settings',{volume:this.volume});
+        }
+        startMusic1 (){
+            this.scene.start('music1',{volume:this.volume});
         }
     
     };
     
-    class settings extends Phaser.Scene{
+    class settings extends Phaser.Scene{//parametres
         constructor(){
             super("settings");
         }
     
         init(data){
-            this.score = data.score;
+            this.volume = data.volume;
         }
     
         preload(){
             this.load.image('background2', 'assets/settingsScreen.png');
             
             this.load.image('buttonBack', 'assets/Back.png');
+            this.load.spritesheet('buttonFullscreen', 'assets/fullscreen.png', { frameWidth: 64, frameHeight: 64 });
             
         }
     
@@ -104,9 +109,37 @@
             
             
             this.add.image(this.sys.canvas.width/2, this.sys.canvas.height/2, 'background2');
+            
+            this.buttonFullscreen = this.add.image(this.sys.canvas.width*0.5, this.sys.canvas.height*0.5, 'buttonFullscreen').setOrigin(0.5).setInteractive();
+
+            this.buttonFullscreen.on('pointerup', function () {
+                if (this.scale.isFullscreen)
+                {
+                    
+
+                    this.scale.stopFullscreen();
+                }
+                else
+                {
+                    
+
+                    this.scale.startFullscreen();
+                }
+
+                
+
+            }, this);
+            
             var buttonBack = this.add.image(this.sys.canvas.width*0.75, this.sys.canvas.height*0.83, 'buttonBack').setOrigin(0).setInteractive();
 
             buttonBack.on('pointerup', function () {
+                this.backToTitle()
+                
+
+            }, this);
+
+            var B = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+            B.on('down', function () {
                 this.backToTitle()
                 
 
@@ -129,20 +162,89 @@
             */
     
             
-    
-            
-    
-            
-    
-            
-    
-            
-    
             
         }
     
         update(){
+            if (this.scale.isFullscreen){this.buttonFullscreen.setFrame(1);}else{this.buttonFullscreen.setFrame(0);}   
             
+                
+
+        }          
+                
+            
+        //__________________
+        //_____FUNCTION_____
+        //__________________
+    
+        backToTitle (player, star){
+            this.scene.start('titleScreen',{volume:this.volume});
+        }
+
+        
+    
+    };
+    class music1 extends Phaser.Scene{
+        constructor(){
+            super("music1");
+        }
+    
+        init(data){
+            this.volume = data.volume;
+        }
+    
+        preload(){
+            this.load.image('background3', 'assets/backMusic1.png');
+            this.load.audio('lagtrain','audio/lagtrain.mp3');
+            
+            
+            
+        }
+    
+        create(){
+            
+            this.add.image(this.sys.canvas.width/2, this.sys.canvas.height/2, 'background3');
+
+            var B = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+            B.on('down', function () {this.backToTitle()}, this);
+                
+            this.musicLagtrain = this.sound.add('lagtrain');
+
+            var musicConfig = {
+                mute:false,
+                volume:this.volume,
+                rate:1,
+                detune:0,
+                seek: 0,
+                loop: false,
+                delay: 0,
+            }
+
+            this.musicLagtrain.play(musicConfig);
+            
+            
+            
+    
+            
+            //__________________
+            //____ANIMATION_____
+            //__________________
+
+            /*
+            this.anims.create({
+                key: 'left',
+                frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+            */
+    
+            
+            
+        }
+    
+        update(){
+            if(this.musicLagtrain.isPlaying){console.log(this.musicLagtrain.seek)}
     
             
         }
@@ -152,15 +254,24 @@
         //__________________
     
         backToTitle (player, star){
-            this.scene.start('titleScreen',{score:this.score});
+            this.musicLagtrain.stop()
+            this.scene.start('titleScreen',{volume:this.volume});
         }
+
+        
     
     };
     
     var config = {
         type: Phaser.CANVAS,
+        scale: {
+        mode: Phaser.Scale.FIT,
+        parent: 'phaser-example',
+        autoCenter: Phaser.Scale.CENTER_BOTH,
         width: 896,
         height: 448,
+        },
+        
         physics: {
             default: 'arcade',
             arcade: {
@@ -168,7 +279,7 @@
                 debug: false
             }
         },
-        scene: [titleScreen,settings]
+        scene: [titleScreen,settings,music1]
     };
     
     
