@@ -18,6 +18,10 @@
         constructor(){
             super("titleScreen");
         }
+        init(data){
+            this.volume = data.volume;
+            this.set = data.set;//set est true si cette scene est lancé depuis une autre scene
+        }
     
         preload(){
             this.load.image('background', 'assets/titleScreen.png');
@@ -29,7 +33,14 @@
     
         create(){
             
-            this.volume=1;
+            if(!this.set){//faire la différence entre lancer la scene titleScreen pour la première fois et la relancer depuis une autre scene
+                
+                //variable qui ne sot initilaisé qu'une seule fois
+
+                this.volume=1;
+            }
+
+
             this.add.image(this.sys.canvas.width/2, this.sys.canvas.height/2, 'background');
 
             var buttonMusic = this.add.image(this.sys.canvas.width*0.75, this.sys.canvas.height*0.7, 'buttonMusic').setOrigin(0).setInteractive();
@@ -101,49 +112,62 @@
             this.load.image('background2', 'assets/settingsScreen.png');
             
             this.load.image('buttonBack', 'assets/Back.png');
-            this.load.spritesheet('buttonFullscreen', 'assets/fullscreen.png', { frameWidth: 64, frameHeight: 64 });
+            this.load.spritesheet('buttonFullscreen', 'assets/fullscreenSwitch.png', { frameWidth: 384, frameHeight: 64 });
+            this.load.image('bar', 'assets/bar.png');
+            this.load.image('barBlanc', 'assets/barBlanc.png');
+            this.load.image('cursorBar', 'assets/cursorBar.png');
             
         }
     
         create(){
+            console.log(this.volume)
+
+            //variables
             
+            this.clickOnVolume=false;
             
+            //background
             this.add.image(this.sys.canvas.width/2, this.sys.canvas.height/2, 'background2');
             
-            this.buttonFullscreen = this.add.image(this.sys.canvas.width*0.5, this.sys.canvas.height*0.5, 'buttonFullscreen').setOrigin(0.5).setInteractive();
+            //bouton Plein ecran
+            this.buttonFullscreen = this.add.image(this.sys.canvas.width*0.05, this.sys.canvas.height*0.3, 'buttonFullscreen').setScale(0.6).setOrigin(0,0.5).setInteractive();
 
             this.buttonFullscreen.on('pointerup', function () {
                 if (this.scale.isFullscreen)
-                {
-                    
-
-                    this.scale.stopFullscreen();
-                }
+                {this.scale.stopFullscreen();}
                 else
-                {
-                    
-
-                    this.scale.startFullscreen();
-                }
-
-                
+                {this.scale.startFullscreen();}    
 
             }, this);
+
+            //barre de volume
+            this.add.image(45, this.sys.canvas.height*0.7, 'bar').setScale(0.6).setOrigin(0,0.5)
+            this.volumeBar = this.add.image(45, this.sys.canvas.height*0.7, 'barBlanc').setScale(0.6).setOrigin(0,0.5).setInteractive();
+
+            this.volumeBar.on('pointerdown', function () {
+                this.clickOnVolume=true 
+
+            }, this);
+
             
+            this.volumeCursor = this.add.image(this.volumeBar.x+(this.volumeBar.width*0.6)*this.volume, this.volumeBar.y, 'cursorBar').setScale(0.6).setOrigin(0.5,0.5).setInteractive();
+            this.volumeCursor.on('pointerdown', function () {
+                this.clickOnVolume=true 
+
+            }, this);
+            //pourcentage volume%
+            this.volumeText = this.add.text(this.volumeBar.x+this.volumeBar.width*0.6+30,this.volumeBar.y,'100 %',{ fontSize: '32px', fontFamily: 'MS UI Gothic' }).setOrigin(0,0.5);
+            
+            //bouton back
             var buttonBack = this.add.image(this.sys.canvas.width*0.75, this.sys.canvas.height*0.83, 'buttonBack').setOrigin(0).setInteractive();
-
-            buttonBack.on('pointerup', function () {
-                this.backToTitle()
-                
-
-            }, this);
-
+            buttonBack.on('pointerup', function () {this.backToTitle()}, this);
+            
             var B = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
-            B.on('down', function () {
-                this.backToTitle()
+            B.on('down', function () {this.backToTitle()}, this);
+                
                 
 
-            }, this);
+            
             
             
     
@@ -166,7 +190,31 @@
         }
     
         update(){
+            var pointer = this.input.activePointer;//définir la souris comme l'objet pointer
+            //console.log('modification du volume : ',this.clickOnVolume)
+            
+            
+
             if (this.scale.isFullscreen){this.buttonFullscreen.setFrame(1);}else{this.buttonFullscreen.setFrame(0);}   
+            if(!pointer.isDown){
+                this.clickOnVolume=false
+            }
+            
+            if(this.clickOnVolume){
+                if(pointer.x>this.volumeBar.x){
+                    if(pointer.x<this.volumeBar.x+this.volumeBar.width*0.6){
+                       this.volumeCursor.x=pointer.x 
+                    }else{this.volumeCursor.x=this.volumeBar.x+this.volumeBar.width*0.6}
+                }else{this.volumeCursor.x=this.volumeBar.x}   
+            }
+            this.percentage=Math.trunc(((this.volumeCursor.x-this.volumeBar.x)/(this.volumeBar.width*0.6))*100)
+            this.volumeText.setText(this.percentage+' %');
+
+            this.volume=this.percentage/100
+            console.log(this.volume)
+            
+            
+            
             
                 
 
@@ -178,7 +226,10 @@
         //__________________
     
         backToTitle (player, star){
-            this.scene.start('titleScreen',{volume:this.volume});
+            this.scene.start('titleScreen',{
+                volume:this.volume,
+                set:true
+            });
         }
 
         
@@ -191,6 +242,7 @@
     
         init(data){
             this.volume = data.volume;
+            this.set = data.set;
         }
     
         preload(){
@@ -244,7 +296,7 @@
         }
     
         update(){
-            if(this.musicLagtrain.isPlaying){console.log(this.musicLagtrain.seek)}
+            if(this.musicLagtrain.isPlaying){console.log(this.musicLagtrain.seek)}//le seek : obtenir le moment où on est dans la musique (en sec)
     
             
         }
@@ -253,9 +305,10 @@
         //_____FUNCTION_____
         //__________________
     
-        backToTitle (player, star){
+        backToTitle (){
             this.musicLagtrain.stop()
-            this.scene.start('titleScreen',{volume:this.volume});
+            this.scene.start('titleScreen',{volume:this.volume,set:true});
+            
         }
 
         
