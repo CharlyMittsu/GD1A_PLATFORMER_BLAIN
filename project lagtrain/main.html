@@ -143,6 +143,9 @@
             //barre de volume
             this.add.image(45, this.sys.canvas.height*0.7, 'bar').setScale(0.6).setOrigin(0,0.5)
             this.volumeBar = this.add.image(45, this.sys.canvas.height*0.7, 'barBlanc').setScale(0.6).setOrigin(0,0.5).setInteractive();
+            //mask de barre de volume
+            this.barMask = this.make.graphics();
+            this.volumeBar.mask = new Phaser.Display.Masks.GeometryMask(this, this.barMask);
 
             this.volumeBar.on('pointerdown', function () {
                 this.clickOnVolume=true 
@@ -191,27 +194,34 @@
     
         update(){
             var pointer = this.input.activePointer;//définir la souris comme l'objet pointer
-            //console.log('modification du volume : ',this.clickOnVolume)
-            
             
 
             if (this.scale.isFullscreen){this.buttonFullscreen.setFrame(1);}else{this.buttonFullscreen.setFrame(0);}   
-            if(!pointer.isDown){
-                this.clickOnVolume=false
+            if(!pointer.isDown){//si on relache le click on ne controle plus les curseur etc
+                this.clickOnVolume=false;
             }
             
-            if(this.clickOnVolume){
+            if(this.clickOnVolume){//si on click sur la barre de volume
+                //on controle avec la souris le curseur du volume (seulement horizontalement et il ne dépasse pas les limite de sa barre)
                 if(pointer.x>this.volumeBar.x){
                     if(pointer.x<this.volumeBar.x+this.volumeBar.width*0.6){
                        this.volumeCursor.x=pointer.x 
                     }else{this.volumeCursor.x=this.volumeBar.x+this.volumeBar.width*0.6}
                 }else{this.volumeCursor.x=this.volumeBar.x}   
             }
-            this.percentage=Math.trunc(((this.volumeCursor.x-this.volumeBar.x)/(this.volumeBar.width*0.6))*100)
-            this.volumeText.setText(this.percentage+' %');
+            this.percentage=Math.trunc(((this.volumeCursor.x-this.volumeBar.x)/(this.volumeBar.width*0.6))*100)//set le pourcentage en fonction de la position du curseur sur la barre et arrondir le tout
+            this.volumeText.setText(this.percentage+' %');//afficher le pourcentage
 
-            this.volume=this.percentage/100
-            console.log(this.volume)
+            this.volume=this.percentage/100//set le volume en fonction du pourcentage
+            
+
+            this.barMask.clear();//réinitialisation du calque en permanence :
+            this.barMask.fillRect(
+                this.volumeBar.x,//le point d'origine du calque (en haut de la barre)
+                this.volumeBar.y-this.volumeBar.height/2*0.6,//(en haut à gauche)
+                this.volumeCursor.x-this.volumeBar.x,//la longueur du claque(la distance entre le curseur et la gauche de la barre)
+                this.volumeBar.height*0.6,//la largeur du calque(largeur de la barre)
+            );
             
             
             
