@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+    <meta charset="UTF-8" />
+    <title>Hitotsu no Game</title>
+    
+    <script type="text/javascript" src="phaser.min.js"></script><!--code source phaser-->
+    <script type="text/javascript" src="class.js"></script><!--PhaserObject-->
+
+    <script type="text/javascript" src="scene/boot.js"></script><!--charge le jeu-->
+    <script type="text/javascript" src="scene/titleScreen.js"></script><!--écran titre-->
+    <script type="text/javascript" src="scene/credits.js"></script><!--écran titre-->
+    <script type="text/javascript" src="scene/settings.js"></script><!--paramêtres-->
+    <script type="text/javascript" src="scene/selectingScreen.js"></script><!--ecran de séléction de perso-->
+    <script type="text/javascript" src="scene/loading.js"></script><!--charge la partie-->
+    <script type="text/javascript" src="scene/baseLvl.js"></script><!--niveau de test au début de la partie-->
+    <script type="text/javascript" src="scene/endScreen.js"></script><!--ecran de fin & decompte des points-->
+
+    <script type="text/javascript" src="scene/levels/lvl_1.js"></script><!--niveau 1-->
+    <script type="text/javascript" src="scene/levels/lvl_2.js"></script><!--niveau 2-->
+    <script type="text/javascript" src="scene/levels/lvl_3.js"></script><!--niveau 3-->
+    <script type="text/javascript" src="scene/levels/lvl_4.js"></script><!--niveau 4-->
+    <script type="text/javascript" src="scene/levels/lvl_5.js"></script><!--niveau 5-->
+
+    
+    
+
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+    
+</head>
+<body>
+    <script type="text/javascript">
+        var config = {
+    type: Phaser.CANVAS,
+    scale: {
+    mode: Phaser.Scale.FIT,
+    parent: 'phaser-example',
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: 1280,
+    height: 720,
+    pixelArt: true,
+    },
+    
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 1000 },
+            debug: false
+        }
+    },
+    scene: [boot,titleScreen,credits,settings,selectingScreen,loading,baseLvl,endScreen,lvl1,lvl2,lvl3,lvl4,lvl5],
+    
+};
+
+
+new Phaser.Game(config);
+    </script>
+</body>
+</html>
